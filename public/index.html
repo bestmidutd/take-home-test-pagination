@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Test</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+    </head>
+
+
+<body>
+    <div class="container ">
+        <select id="sortby">
+            <option value="Recent Projects">Recent Projects</option>
+            <option value="Order By Category Name ASC">Order By Category Name ASC</option>
+            <option value="Order By Username Asc">Order By Username Asc</option>
+            <option value="Order By Project Title Asc">Order By Project Title Asc</option>
+          </select>
+        <table class="table table-hover">
+            <thead>
+                <td>Project Title</td>
+                <td>Username</td>
+                <td>CategoryName</td>
+            </thead>
+            <tbody class="tbody">
+            </tbody>
+        </table>
+    </div>
+
+    <div class="container">
+        <div class="pagination">
+            <button id="previous">Previous</button>
+            <select name="pagi" id="pagi">
+            </select>
+            <button id="next">Next</button>
+        </div>
+    </div>
+</body>
+<script>
+function loadTable(response){
+    if(response.products.length > 0){
+        for(let index = 0; index < 2; index++) {
+            var newRow = $("<tr>");
+            var cols = "";
+            cols += '<td> '+ response.products[index].project_title +'</td>';
+            cols += '<td> '+ response.products[index].username +'</td>';
+            cols += '<td> '+ response.products[index].categoryname+'</td>';                
+            newRow.append(cols);
+            $(".tbody").append(newRow);
+        }  
+    }
+}
+$(document).ready(() => {
+    var pagi = -1
+    var sortby = " ";
+    $.ajax({
+        url: "http://localhost:3000/users", 
+        type: 'get',
+        data: {
+            page: pagi,
+            sortby: sortby
+        },
+        success: function(response){
+            for(let i = 1; i <= response.products.length/2; i++){
+                var opt = '<option value =' + i.toString() + '>'+ i.toString() + '</option>';
+                $("#pagi").append(opt);
+            }
+            loadTable(response); 
+        }
+    })
+    $('#pagi').on('change', function(e) {
+        e.preventDefault();
+        pagi = $(this).find("option:selected").val();
+        sortby = $('#sortby').val();
+        $.ajax({
+            url: "http://localhost:3000/users", 
+            type: 'get',
+            data: {
+                page: pagi,
+                sortby: sortby
+            },
+            success: function(response){
+                $(".tbody").empty();
+                loadTable(response);
+        }
+    })
+    });
+    $("#sortby").on('change', function(e){
+        e.preventDefault();
+        sortby = $(this).find("option:selected").val();
+        pagi = $('#pagi').val();
+        $.ajax({
+            url: "http://localhost:3000/users", 
+            type: 'get',
+            data: {
+                page: pagi,
+                sortby: sortby
+            },
+            success: function(response){
+                $(".tbody").empty();
+                loadTable(response);
+            }
+        })
+    })
+    $("#next").click(function(){
+        
+        var _pagi = parseInt($('#pagi').val()) + 1;
+        if(_pagi <= $('#pagi').children().length){
+            // $("#pagi").find("option[value=_pagi]").attr("selected",true);
+            $.ajax({
+            url: "http://localhost:3000/users", 
+            type: 'get',
+            data: {
+                page: _pagi,
+                sortby: sortby
+            },
+            success: function(response){
+                $(".tbody").empty();
+
+                loadTable(response);
+                }
+            })
+        }
+    })
+    $("#previous").click(function(){
+        var _pagi = $('#pagi').val() - 1;
+        if(_pagi >= 1){
+            $("#pagi").find("option[value=_pagi]").attr("selected",true);
+            $.ajax({
+            url: "http://localhost:3000/users", 
+            type: 'get',
+            data: {
+                page: _pagi,
+                sortby: sortby
+            },
+            success: function(response){
+                $(".tbody").empty();
+                loadTable(response);
+                }
+            })
+        }
+    })
+})
+</script>
+</html>
